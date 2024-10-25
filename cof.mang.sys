@@ -1,0 +1,336 @@
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.VisualBasic.ApplicationServices;
+using Microsoft.VisualBasic;
+using MySql.Data.MySqlClient;
+using Org.BouncyCastle.Utilities.Collections;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Runtime.Intrinsics.X86;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
+
+namespace Fuculty_Conference_Managment_System_v2._0
+{
+    public partial class form_manage_system : Form
+    {
+        string strCon = "server=127.0.0.1;uid=root;password=omama996;database=conferencebd;";
+
+        public form_manage_system()
+        {
+            InitializeComponent();
+        }
+
+        private void form_manage_system_Load(object sender, EventArgs e)
+        {
+            //Load for first time
+            display_Conferences_ID();
+            display_Conferences_ID_edit();
+            display_all_users_ssn();
+            display_researchers_ID();
+        }
+        void display_Conferences_ID()
+        {
+            cmb_conf.Items.Clear();
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "SELECT conferance_id FROM conference";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.CommandType = CommandType.Text;
+            MySqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                cmb_conf.Items.Add(dr["conferance_id"]);
+            }
+            con.Close();
+        }
+        void display_Conferences_ID_edit()
+        {
+            cmb_confID_ed.Items.Clear();
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "SELECT conferance_id FROM conference";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.CommandType = CommandType.Text;
+            MySqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                cmb_confID_ed.Items.Add(dr["conferance_id"]);
+            }
+            con.Close();
+        }
+
+        void display_all_users_ssn()
+        {
+            cmb_snn.Items.Clear();
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "SELECT ssn FROM user";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.CommandType = CommandType.Text;
+            MySqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                cmb_snn.Items.Add(dr["ssn"]);
+            }
+            con.Close();
+        }
+        
+        void display_researchers_ID()
+        {
+            comboBox_paqper.Items.Clear();
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+            string pos = "res";
+            string sqlQury = "SELECT ssn FROM user where position='" + pos + "'";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.CommandType = CommandType.Text;
+            MySqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                comboBox_paqper.Items.Add(dr["ssn"]);
+            }
+            con.Close();
+        }
+        private void cmbconferenceName_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void cmb_conferenceDate_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btn_add_Click(object sender, EventArgs e)
+        {
+            string snn_org = form_login.ssn_user;
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "INSERT INTO conference(`conferance_id`,`conference_name`,`conference_date`,`ssn_organizer`)VALUES('" + txt_conferenceId.Text + "','" + txt_conferencename.Text + "','" + dateTimePicker1.Text + "','" + snn_org + "')";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.ExecuteNonQuery();
+            MessageBox.Show("Conference Successfully Created");
+
+            con.Close();
+
+            //Update all changes
+            display_Conferences_ID();
+            display_Conferences_ID_edit();
+        }
+
+        private void cmb_fname_researcher_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+            
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            
+            string conf_id = cmb_confID_ed.SelectedItem.ToString();
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "UPDATE `conference` SET `conference_name` = '" + txt_conf_name_ed.Text + "' , `conference_date` = '" + txt_conf_date_ed.Text + "'  WHERE `conferance_id` ='" + conf_id + "'";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.ExecuteNonQuery();
+            MessageBox.Show("Conference Successfully Updates");
+
+            con.Close();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+            string conf_id = cmb_confID_ed.SelectedItem.ToString();
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+            //Delete all refrences F.K
+            string sqlQury2 = "DELETE FROM `ticket_conference` WHERE`confernce_id` ='" + conf_id + "'";
+            MySqlCommand cmd2 = new MySqlCommand(sqlQury2, con);
+            cmd2.ExecuteNonQuery();
+
+            //Delete source P.K
+            string sqlQury = "DELETE FROM `conference` WHERE`conferance_id` ='" + conf_id + "'";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.ExecuteNonQuery();
+
+            MessageBox.Show("Conference Successfully Deleted");
+            con.Close();
+
+            //Update all changes
+            display_Conferences_ID();
+            display_Conferences_ID_edit();
+
+        }
+
+        private void btn_update_Click(object sender, EventArgs e)
+        {
+
+            string usr_ssn = cmb_snn.SelectedItem.ToString();
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "UPDATE `user` SET `first_name` = '" + txt_user_fname.Text + "', `last_name` = '" + txt_user_lname.Text + "', `position` = '" + txt_position.Text + "', `password` = '" + txt_password.Text + "', `email` = '" + txt_email.Text + "', `phone` = '" + txt_phone.Text + "', `birthdate` = '" + txt_birth.Text + "', `interestingfield` = '" + txt_field.Text + "' WHERE `ssn` =  '" + usr_ssn + "' ";
+
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.ExecuteNonQuery();
+            MessageBox.Show("User Successfully Updates");
+
+            con.Close();
+            //update researchers
+            display_researchers_ID();
+        }
+
+        private void btn_searchup_Click(object sender, EventArgs e)
+        {
+           
+        }
+
+        private void btn_delete_Click(object sender, EventArgs e)
+        {
+            string usr_ssn = cmb_snn.SelectedItem.ToString();
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+            //Delete all refrences F.K
+            string sqlQury2 = "DELETE FROM `user_registered_into_conference` WHERE`usr_ssn` ='" + usr_ssn + "'";
+            MySqlCommand cmd2 = new MySqlCommand(sqlQury2, con);
+            cmd2.ExecuteNonQuery();
+            string sqlQury3 = "DELETE FROM `usr_access_paper` WHERE`usr_ssn` ='" + usr_ssn + "'";
+            MySqlCommand cmd3 = new MySqlCommand(sqlQury3, con);
+            cmd3.ExecuteNonQuery();
+
+            //Delete source P.K
+            string sqlQury = "DELETE FROM `user` WHERE`ssn` ='" + usr_ssn + "'";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.ExecuteNonQuery();
+
+            MessageBox.Show("User Successfully Deleted");
+            con.Close();
+        }
+
+        private void txt_price_tickect_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            string snn_org = form_login.ssn_user;
+            string conf_id = cmb_conf.SelectedItem.ToString();
+            string conf_type = cmb_ticket_type.SelectedItem.ToString();
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "INSERT INTO ticket_conference(`type`,`confernce_id`,`price`)VALUES('" + conf_type + "','" + conf_id + "','" + Int32.Parse(txt_price_tickect.Text) + "')";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.ExecuteNonQuery();
+            MessageBox.Show("Ticket Successfully Created");
+
+            con.Close();
+        }
+
+        private void cmb_confID_ed_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string conf_id = cmb_confID_ed.SelectedItem.ToString();
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "SELECT conference_name, conference_date FROM conference where conferance_id = '" + conf_id + "' ";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.CommandType = CommandType.Text;
+            MySqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                txt_conf_name_ed.Text = dr["conference_name"].ToString();
+                txt_conf_date_ed.Text = dr["conference_date"].ToString();
+            }
+            con.Close();
+        }
+
+        private void cmb_snn_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string usr_ssn = cmb_snn.SelectedItem.ToString();
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "SELECT * FROM user where ssn = '" + usr_ssn + "' ";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.CommandType = CommandType.Text;
+            MySqlDataReader dr = cmd.ExecuteReader();
+
+            while (dr.Read())
+            {
+                txt_ssn.Text = dr["ssn"].ToString();
+                txt_user_fname.Text = dr["first_name"].ToString();
+                txt_user_lname.Text = dr["last_name"].ToString();
+                txt_position.Text = dr["position"].ToString();
+                txt_field.Text = dr["interestingfield"].ToString();
+                txt_phone.Text = dr["phone"].ToString();
+                txt_email.Text = dr["email"].ToString();
+                txt_birth.Text = dr["birthdate"].ToString();
+                txt_password.Text = dr["password"].ToString();
+            }
+            con.Close();
+        }
+
+        private void label23_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            //insert_paper
+            string snn_reas = comboBox_paqper.SelectedItem.ToString();
+
+            MySqlConnection con = new MySqlConnection();
+            con.ConnectionString = strCon;
+            con.Open();
+
+            string sqlQury = "INSERT INTO paper (`paper_id`,`paper_name`,`paper_field`,`pupliched_date`,`content`,`ssn_researcher`)VALUES ('" + txt_paper_Id.Text + "', '" + paper_name.Text + "', '" + paper_field.Text + "', '" + dateTimePicker22.Text + "','" + paper_content.Text + "','" + snn_reas + "')";
+            MySqlCommand cmd = new MySqlCommand(sqlQury, con);
+            cmd.ExecuteNonQuery();
+            MessageBox.Show("Paper Successfully Created");
+
+            con.Close();
+
+            display_researchers_ID();
+        }
+    }
+}
